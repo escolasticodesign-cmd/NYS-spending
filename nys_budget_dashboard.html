@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>New York State Budget Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --surface2: #1c2535;
+    --border: #2a3548;
+    --text: #e8edf5;
+    --muted: #7a8ba8;
+    --accent: #3b82f6;
+    --green: #22c55e;
+    --red: #ef4444;
+    --yellow: #f59e0b;
+    --purple: #a855f7;
+    --teal: #14b8a6;
+    --orange: #f97316;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Sora', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* HEADER */
+  header {
+    background: linear-gradient(135deg, #0f1e3d 0%, #0a0e1a 60%);
+    border-bottom: 1px solid var(--border);
+    padding: 28px 32px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(59,130,246,0.15) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .header-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .header-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+  h1 {
+    font-size: clamp(22px, 4vw, 38px);
+    font-weight: 800;
+    line-height: 1.1;
+    color: #fff;
+  }
+  h1 span { color: var(--accent); }
+  .header-sub {
+    margin-top: 6px;
+    color: var(--muted);
+    font-size: 14px;
+    font-weight: 400;
+  }
+  .deficit-badge {
+    background: linear-gradient(135deg, rgba(239,68,68,0.2), rgba(239,68,68,0.05));
+    border: 1.5px solid rgba(239,68,68,0.5);
+    border-radius: 12px;
+    padding: 14px 22px;
+    text-align: center;
+    animation: pulse-red 2.5s ease-in-out infinite;
+  }
+  @keyframes pulse-red {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); }
+    50% { box-shadow: 0 0 20px 4px rgba(239,68,68,0.15); }
+  }
+  .deficit-badge .label { font-size: 11px; color: #fca5a5; letter-spacing: 1px; font-weight: 600; }
+  .deficit-badge .amount { font-size: 28px; font-weight: 800; color: var(--red); font-family: 'DM Mono', monospace; }
+  .deficit-badge .sub { font-size: 11px; color: #fca5a5; margin-top: 2px; }
+
+  /* KPI CARDS */
+  .kpi-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+    padding: 24px 32px;
+    background: var(--bg);
+  }
+  .kpi-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 20px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, border-color 0.2s;
+  }
+  .kpi-card:hover { transform: translateY(-2px); border-color: var(--accent); }
+  .kpi-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--kpi-color, var(--accent));
+  }
+  .kpi-icon { font-size: 22px; margin-bottom: 8px; }
+  .kpi-label { font-size: 11px; color: var(--muted); font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
+  .kpi-value { font-size: 24px; font-weight: 800; color: #fff; font-family: 'DM Mono', monospace; }
+  .kpi-change { font-size: 12px; margin-top: 4px; font-weight: 600; }
+  .kpi-change.up { color: var(--red); }
+  .kpi-change.down { color: var(--green); }
+  .kpi-change.neutral { color: var(--yellow); }
+
+  /* TABS */
+  .tabs-bar {
+    display: flex;
+    gap: 0;
+    padding: 0 32px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .tabs-bar::-webkit-scrollbar { display: none; }
+  .tab-btn {
+    padding: 16px 24px;
+    font-family: 'Sora', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+    letter-spacing: 0.3px;
+  }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+  .tab-icon { margin-right: 7px; }
+
+  /* TAB CONTENT */
+  .tab-content { display: none; padding: 32px; animation: fadeIn 0.3s ease; }
+  .tab-content.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* SECTION TITLES */
+  .section-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 6px;
+  }
+  .section-sub {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 24px;
+  }
+
+  /* CHART GRID */
+  .chart-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 22px;
+    margin-bottom: 28px;
+  }
+  .chart-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+  }
+  .chart-card-full {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 22px;
+  }
+  .chart-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 4px;
+  }
+  .chart-subtitle {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 18px;
+  }
+  .chart-wrap { position: relative; height: 260px; }
+  .chart-wrap-lg { position: relative; height: 320px; }
+
+  /* ALERT BOXES */
+  .alert {
+    border-radius: 12px;
+    padding: 18px 22px;
+    margin-bottom: 18px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    border: 1px solid;
+  }
+  .alert-red { background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.3); }
+  .alert-green { background: rgba(34,197,94,0.08); border-color: rgba(34,197,94,0.3); }
+  .alert-yellow { background: rgba(245,158,11,0.08); border-color: rgba(245,158,11,0.3); }
+  .alert-icon { font-size: 22px; flex-shrink: 0; margin-top: 1px; }
+  .alert-title { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+  .alert-body { font-size: 13px; color: var(--muted); line-height: 1.6; }
+  .alert-amount { font-family: 'DM Mono', monospace; font-weight: 700; }
+
+  /* STAT LIST */
+  .stat-list { display: flex; flex-direction: column; gap: 12px; }
+  .stat-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    background: var(--surface2);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .stat-row-left { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 150px; }
+  .stat-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .stat-name { font-size: 13px; font-weight: 600; color: var(--text); }
+  .stat-desc { font-size: 11px; color: var(--muted); margin-top: 1px; }
+  .stat-amount { font-size: 15px; font-weight: 800; font-family: 'DM Mono', monospace; color: #fff; }
+  .stat-pct { font-size: 11px; color: var(--muted); text-align: right; }
+  .progress-bar-wrap { width: 100%; height: 5px; background: var(--border); border-radius: 3px; margin-top: 8px; }
+  .progress-bar { height: 5px; border-radius: 3px; transition: width 1s ease; }
+
+  /* PEOPLE SECTION */
+  .people-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    margin-bottom: 22px;
+  }
+  .people-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 22px;
+  }
+  .people-card-title { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+  .people-card-sub { font-size: 12px; color: var(--muted); margin-bottom: 16px; }
+  .big-number { font-size: 42px; font-weight: 800; font-family: 'DM Mono', monospace; line-height: 1; }
+  .big-number-label { font-size: 13px; color: var(--muted); margin-top: 6px; }
+
+  /* POPULATION BAR */
+  .pop-bar-wrap { margin: 18px 0; }
+  .pop-bar { height: 28px; border-radius: 6px; display: flex; overflow: hidden; }
+  .pop-seg { display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.9); transition: all 0.5s; }
+  .pop-bar-legend { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 10px; }
+  .pop-legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+  .pop-legend-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+
+  /* WASTE ITEMS */
+  .waste-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 16px;
+    margin-bottom: 22px;
+  }
+  .waste-card {
+    background: var(--surface);
+    border: 1px solid rgba(239,68,68,0.2);
+    border-radius: 14px;
+    padding: 20px;
+  }
+  .waste-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+  .waste-tag { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; padding: 4px 10px; border-radius: 20px; background: rgba(239,68,68,0.15); color: #fca5a5; }
+  .waste-amount { font-size: 22px; font-weight: 800; color: var(--red); font-family: 'DM Mono', monospace; }
+  .waste-title { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+  .waste-desc { font-size: 12px; color: var(--muted); line-height: 1.6; }
+
+  /* SOURCES */
+  .sources-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-top: 24px;
+  }
+  .sources-title { font-size: 12px; font-weight: 700; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px; }
+  .sources-list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+  .sources-list li { font-size: 12px; color: var(--muted); display: flex; gap: 8px; }
+  .sources-list li::before { content: '→'; color: var(--accent); }
+  .sources-list a { color: var(--accent); text-decoration: none; }
+  .sources-list a:hover { text-decoration: underline; }
+
+  /* FOOTER NOTE */
+  .footer-note {
+    text-align: center;
+    padding: 20px 32px;
+    font-size: 12px;
+    color: var(--muted);
+    border-top: 1px solid var(--border);
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 600px) {
+    header, .kpi-row, .tab-content { padding-left: 16px; padding-right: 16px; }
+    .tabs-bar { padding: 0 8px; }
+    .chart-grid { grid-template-columns: 1fr; }
+    .chart-wrap, .chart-wrap-lg { height: 220px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-top">
+    <div>
+      <div class="header-label">📊 New York State</div>
+      <h1>Budget <span>Dashboard</span></h1>
+      <p class="header-sub">Fiscal Year 2025–26 · All figures in billions USD · Data from NYS Comptroller & Division of Budget</p>
+    </div>
+    <div class="deficit-badge">
+      <div class="label">⚠️ PROJECTED DEFICIT</div>
+      <div class="amount">−$5.1B</div>
+      <div class="sub">Revenue vs. Spending Gap FY25-26</div>
+    </div>
+  </div>
+</header>
+
+<!-- KPI CARDS -->
+<div class="kpi-row">
+  <div class="kpi-card" style="--kpi-color: #3b82f6;">
+    <div class="kpi-icon">💵</div>
+    <div class="kpi-label">Total Revenue</div>
+    <div class="kpi-value">$248.9B</div>
+    <div class="kpi-change neutral">↔ ~0% vs prior year</div>
+  </div>
+  <div class="kpi-card" style="--kpi-color: #ef4444;">
+    <div class="kpi-icon">📤</div>
+    <div class="kpi-label">Total Spending</div>
+    <div class="kpi-value">$254.0B</div>
+    <div class="kpi-change up">↑ +5.2% vs prior year</div>
+  </div>
+  <div class="kpi-card" style="--kpi-color: #a855f7;">
+    <div class="kpi-icon">🏥</div>
+    <div class="kpi-label">Medicaid Budget</div>
+    <div class="kpi-value">$109.6B</div>
+    <div class="kpi-change up">↑ +7.6% vs prior year</div>
+  </div>
+  <div class="kpi-card" style="--kpi-color: #22c55e;">
+    <div class="kpi-icon">🏫</div>
+    <div class="kpi-label">School Aid</div>
+    <div class="kpi-value">$37.4B</div>
+    <div class="kpi-change up">↑ +4.9% vs prior year</div>
+  </div>
+  <div class="kpi-card" style="--kpi-color: #f59e0b;">
+    <div class="kpi-icon">🇺🇸</div>
+    <div class="kpi-label">Federal Funding</div>
+    <div class="kpi-value">$96.7B</div>
+    <div class="kpi-change neutral">38.8% of budget</div>
+  </div>
+  <div class="kpi-card" style="--kpi-color: #ef4444;">
+    <div class="kpi-icon">📉</div>
+    <div class="kpi-label">3-Year Gap</div>
+    <div class="kpi-value">$34.3B</div>
+    <div class="kpi-change up">↑ $7B worse than Jan forecast</div>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs-bar">
+  <button class="tab-btn active" onclick="showTab('overview')"><span class="tab-icon">🗺️</span>Overview</button>
+  <button class="tab-btn" onclick="showTab('revenue')"><span class="tab-icon">💰</span>Where Money Comes From</button>
+  <button class="tab-btn" onclick="showTab('spending')"><span class="tab-icon">📤</span>Where Money Goes</button>
+  <button class="tab-btn" onclick="showTab('social')"><span class="tab-icon">👥</span>Who Uses Social Programs</button>
+  <button class="tab-btn" onclick="showTab('waste')"><span class="tab-icon">🗑️</span>Waste & Concerns</button>
+</div>
+
+<!-- TAB: OVERVIEW -->
+<div id="tab-overview" class="tab-content active">
+  <div class="section-title">The Big Picture</div>
+  <div class="section-sub">New York spends more than it takes in — and the gap is growing every year.</div>
+
+  <div class="alert alert-red">
+    <div class="alert-icon">🚨</div>
+    <div>
+      <div class="alert-title">New York Is Running a Deficit</div>
+      <div class="alert-body">The state brings in <span class="alert-amount">$248.9 billion</span> but spends <span class="alert-amount">$254 billion</span> — a gap of roughly <span class="alert-amount" style="color:var(--red)">$5.1 billion</span> this year alone. Over the next 3 years, the projected shortfall grows to <span class="alert-amount" style="color:var(--red)">$34.3 billion</span>. Spending is growing faster than revenue, and federal funding cuts could make this significantly worse.</div>
+    </div>
+  </div>
+
+  <div class="alert alert-yellow">
+    <div class="alert-icon">⚠️</div>
+    <div>
+      <div class="alert-title">Federal Money Is a Big Risk</div>
+      <div class="alert-body">Nearly <span class="alert-amount">39 cents of every dollar</span> the state spends comes from the federal government — that's <span class="alert-amount">$96.7 billion</span>. The vast majority (87%) funds health and social programs. If federal funding is cut, New York faces a major crisis with no easy fix.</div>
+    </div>
+  </div>
+
+  <div class="alert alert-green">
+    <div class="alert-icon">✅</div>
+    <div>
+      <div class="alert-title">Strong Tax Collection</div>
+      <div class="alert-body">The state collected <span class="alert-amount">$162 billion</span> in state and local taxes in FY2025. Personal income taxes — especially from high earners in finance — are the backbone of New York's revenue. Wall Street performance directly affects how much money the state has.</div>
+    </div>
+  </div>
+
+  <div class="chart-card-full">
+    <div class="chart-title">Revenue vs. Spending — Year Over Year</div>
+    <div class="chart-subtitle">How the gap between income and expenses has grown since 2019 (in billions)</div>
+    <div class="chart-wrap-lg">
+      <canvas id="chart-overview-bar"></canvas>
+    </div>
+  </div>
+
+  <div class="chart-grid">
+    <div class="chart-card">
+      <div class="chart-title">Revenue vs. Spending Breakdown</div>
+      <div class="chart-subtitle">FY 2025-26 in billions</div>
+      <div class="chart-wrap">
+        <canvas id="chart-overview-donut"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Projected 3-Year Budget Gap</div>
+      <div class="chart-subtitle">Cumulative shortfall grows to $34.3B by FY2029</div>
+      <div class="chart-wrap">
+        <canvas id="chart-gap"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB: REVENUE -->
+<div id="tab-revenue" class="tab-content">
+  <div class="section-title">Where Does the Money Come From?</div>
+  <div class="section-sub">New York's revenue comes from three main buckets: state taxes, federal funding, and other sources.</div>
+
+  <div class="chart-grid">
+    <div class="chart-card">
+      <div class="chart-title">State Tax Revenue by Type</div>
+      <div class="chart-subtitle">FY 2025 — Personal Income Tax dominates</div>
+      <div class="chart-wrap">
+        <canvas id="chart-rev-donut"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">All Funds Revenue Sources</div>
+      <div class="chart-subtitle">Including federal aid — FY 2025-26 total: $248.9B</div>
+      <div class="chart-wrap">
+        <canvas id="chart-rev-sources"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-card-full">
+    <div class="chart-title">Tax Revenue Growth Since 2019</div>
+    <div class="chart-subtitle">State and local tax collections have grown significantly — but spending has grown faster</div>
+    <div class="chart-wrap-lg">
+      <canvas id="chart-rev-trend"></canvas>
+    </div>
+  </div>
+
+  <div class="section-title" style="margin-top:8px;">Revenue Breakdown</div>
+  <div class="section-sub">How each source stacks up</div>
+  <div class="stat-list">
+    <div class="stat-row">
+      <div class="stat-row-left">
+        <div class="stat-dot" style="background:#3b82f6;"></div>
+        <div>
+          <div class="stat-name">Personal Income Tax</div>
+          <div class="stat-desc">Wages, investments, capital gains — top earners pay much more</div>
+        </div>
+      </div>
+      <div>
+        <div class="stat-amount">~$75B</div>
+        <div class="stat-pct" style="color:var(--accent)">~46% of state taxes</div>
+      </div>
+    </div>
+    <div class="stat-row">
+      <div class="stat-row-left">
+        <div class="stat-dot" style="background:#f59e0b;"></div>
+        <div>
+          <div class="stat-name">Sales & Use Tax</div>
+          <div class="stat-desc">State rate 4%; combined state+local avg ~8.5%</div>
+        </div>
+      </div>
+      <div>
+        <div class="stat-amount">$41.7B</div>
+        <div class="stat-pct" style="color:var(--yellow)">~26% of state taxes</div>
+      </div>
+    </div>
+    <div class="stat-row">
+      <div class="stat-row-left">
+        <div class="stat-dot" style="background:#a855f7;"></div>
+        <div>
+          <div class="stat-name">Corporate & Business Taxes</div>
+          <div class="stat-desc">Taxes on business profits and operations</div>
+        </div>
+      </div>
+      <div>
+        <div class="stat-amount">~$22B</div>
+        <div class="stat-pct" style="color:var(--purple)">~14% of state taxes</div>
+      </div>
+    </div>
+    <div class="stat-row">
+      <div class="stat-row-left">
+        <div class="stat-dot" style="background:#f97316;"></div>
+        <div>
+          <div class="stat-name">Federal Funding</div>
+          <div class="stat-desc">Medicaid reimbursements, education grants, and more</div>
+        </div>
+      </div>
+      <div>
+        <div class="stat-amount">$96.7B</div>
+        <div class="stat-pct" style="color:var(--orange)">38.8% of ALL funds</div>
+      </div>
+    </div>
+    <div class="stat-row">
+      <div class="stat-row-left">
+        <div class="stat-dot" style="background:#14b8a6;"></div>
+        <div>
+          <div class="stat-name">Other Taxes & Fees</div>
+          <div class="stat-desc">Property transfer, excise, and miscellaneous</div>
+        </div>
+      </div>
+      <div>
+        <div class="stat-amount">~$24B</div>
+        <div class="stat-pct" style="color:var(--teal)">~15% of state taxes</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB: SPENDING -->
+<div id="tab-spending" class="tab-content">
+  <div class="section-title">Where Does the Money Go?</div>
+  <div class="section-sub">Two programs — Medicaid and School Aid — eat up the majority of the state budget.</div>
+
+  <div class="chart-grid">
+    <div class="chart-card">
+      <div class="chart-title">Budget by Category</div>
+      <div class="chart-subtitle">FY 2025-26 All Funds ($254B total)</div>
+      <div class="chart-wrap">
+        <canvas id="chart-spend-donut"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Medicaid vs. Everything Else</div>
+      <div class="chart-subtitle">Medicaid alone = 43% of total budget</div>
+      <div class="chart-wrap">
+        <canvas id="chart-spend-pie2"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-card-full">
+    <div class="chart-title">Spending Growth — Medicaid vs. School Aid vs. Rest</div>
+    <div class="chart-subtitle">Medicaid costs have nearly doubled in 10 years</div>
+    <div class="chart-wrap-lg">
+      <canvas id="chart-spend-trend"></canvas>
+    </div>
+  </div>
+
+  <div class="section-title" style="margin-top:8px;">Where Every Dollar Goes</div>
+  <div class="section-sub">Major spending categories with percentage of total budget</div>
+  <div class="stat-list">
+    <div class="stat-row">
+      <div class="stat-row-left">
+        <div class="stat-dot" style="background:#ef4444;"></div>
+        <div>
+          <div class="stat-name">🏥 Medicaid (Health Care for Low Income)</div>
+          <div class="stat-desc">Covers 6.9 million New Yorkers — largest single expense</div>
+        </div>
+      </div>
+      <div>
+        <div class="stat-amount" style="color:var(--red)">$109.6B</div>
+        <div class="stat-pct">43% of budget</div>
+        <div class="progress-bar-wrap"><div class="progress-bar" style="width:43%;background:var(--red);"></div></div>
+      </div>
+    </div>
+    <div class="stat-row">
+      <div class="stat-row-left">
+        <div class="stat-dot" style="background:#22c55e;"></div>
+        <div>
+          <div class="stat-name">🏫 School Aid (K-12 Education)</div>
+          <div class="stat-desc">Funding for public schools across the state</div>
+        </div>
+      </div>
+      <div>
+        <div class="stat-amount">$37.4B</div>
+        <div class="stat-pct">15% of budget</div>
+        <div class="progress-bar-wrap"><div class="progress-bar" style="width:15%;background:var(--green);"></div></div>
+      </div>
+    </div>
+    <div class="stat-row">
+      <div class="stat-row-left">
+        <div class="stat-dot" style="background:#3b82f6;"></div>
+        <div>
+          <div class="stat-name">🏛️ State Operations</div>
+          <div class="stat-desc">Running government agencies, state workers, infrastructure</div>
+        </div>
+      </div>
+      <div>
+        <div class="stat-amount">~$25B</div>
+        <div class="stat-pct">~10% of budget</div>
+        <div class="progress-bar-wrap"><div class="progress-bar" style="width:10%;background:var(--accent);"></div></div>
+      </div>
+    </div>
+    <div class="stat-row">
+      <div class="stat-row-left">
+        <div class="stat-dot" style="background:#f59e0b;"></div>
+        <div>
+          <div class="stat-name">🚌 Transportation & Infrastructure</div>
+          <div class="stat-desc">Roads, bridges, MTA, transit systems</div>
+        </div>
+      </div>
+      <div>
+        <div class="stat-amount">~$18B</div>
+        <div class="stat-pct">~7% of budget</div>
+        <div class="progress-bar-wrap"><div class="progress-bar" style="width:7%;background:var(--yellow);"></div></div>
+      </div>
+    </div>
+    <div class="stat-row">
+      <div class="stat-row-left">
+        <div class="stat-dot" style="background:#a855f7;"></div>
+        <div>
+          <div class="stat-name">👨‍👩‍👧 Other Social Services</div>
+          <div class="stat-desc">Public assistance, housing, food programs, child welfare</div>
+        </div>
+      </div>
+      <div>
+        <div class="stat-amount">~$22B</div>
+        <div class="stat-pct">~9% of budget</div>
+        <div class="progress-bar-wrap"><div class="progress-bar" style="width:9%;background:var(--purple);"></div></div>
+      </div>
+    </div>
+    <div class="stat-row">
+      <div class="stat-row-left">
+        <div class="stat-dot" style="background:#14b8a6;"></div>
+        <div>
+          <div class="stat-name">💰 Debt Service</div>
+          <div class="stat-desc">Paying interest and principal on state borrowing</div>
+        </div>
+      </div>
+      <div>
+        <div class="stat-amount">~$16B</div>
+        <div class="stat-pct">~6% of budget</div>
+        <div class="progress-bar-wrap"><div class="progress-bar" style="width:6%;background:var(--teal);"></div></div>
+      </div>
+    </div>
+    <div class="stat-row">
+      <div class="stat-row-left">
+        <div class="stat-dot" style="background:#64748b;"></div>
+        <div>
+          <div class="stat-name">📋 Everything Else</div>
+          <div class="stat-desc">Higher education, environment, housing, corrections, etc.</div>
+        </div>
+      </div>
+      <div>
+        <div class="stat-amount">~$26B</div>
+        <div class="stat-pct">~10% of budget</div>
+        <div class="progress-bar-wrap"><div class="progress-bar" style="width:10%;background:#64748b;"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB: SOCIAL PROGRAMS -->
+<div id="tab-social" class="tab-content">
+  <div class="section-title">Who Uses Social Programs?</div>
+  <div class="section-sub">New York has the most generous eligibility thresholds in the country — more people are enrolled here than anywhere except California.</div>
+
+  <div class="people-grid">
+    <div class="people-card">
+      <div class="people-card-title">📊 State Population on Medicaid</div>
+      <div class="people-card-sub">As of February 2025</div>
+      <div class="big-number" style="color:var(--red)">35%</div>
+      <div class="big-number-label">of all New Yorkers — 6.9 million people</div>
+    </div>
+    <div class="people-card">
+      <div class="people-card-title">🗽 Medicaid + Essential Plan Combined</div>
+      <div class="people-card-sub">Zero-premium state-sponsored health coverage</div>
+      <div class="big-number" style="color:var(--orange)">44%</div>
+      <div class="big-number-label">of all New Yorkers — highest rate in the nation</div>
+    </div>
+    <div class="people-card">
+      <div class="people-card-title">🏙️ NYC Residents on State Coverage</div>
+      <div class="people-card-sub">New York City only</div>
+      <div class="big-number" style="color:var(--purple)">60%</div>
+      <div class="big-number-label">of NYC residents enrolled in Medicaid or Essential Plan</div>
+    </div>
+    <div class="people-card">
+      <div class="people-card-title">🏘️ The Bronx: Highest County Rate</div>
+      <div class="people-card-sub">Range: 13.7% (Hamilton County) to 68.2% (Bronx)</div>
+      <div class="big-number" style="color:var(--red)">68%</div>
+      <div class="big-number-label">of Bronx residents are on Medicaid</div>
+    </div>
+  </div>
+
+  <!-- POPULATION BAR VISUAL -->
+  <div class="chart-card-full">
+    <div class="chart-title">New York State: Who's On What?</div>
+    <div class="chart-subtitle">Estimated breakdown of the ~20 million NYS residents by coverage status</div>
+    <div class="pop-bar-wrap">
+      <div class="pop-bar">
+        <div class="pop-seg" style="width:35%;background:#ef4444;">Medicaid 35%</div>
+        <div class="pop-seg" style="width:9%;background:#f97316;">Essential Plan 9%</div>
+        <div class="pop-seg" style="width:18%;background:#3b82f6;">Private Employer 18%</div>
+        <div class="pop-seg" style="width:12%;background:#a855f7;">Medicare 12%</div>
+        <div class="pop-seg" style="width:21%;background:#22c55e;">Other/Uninsured 26%</div>
+      </div>
+      <div class="pop-bar-legend">
+        <div class="pop-legend-item"><div class="pop-legend-dot" style="background:#ef4444;"></div>Medicaid (35%)</div>
+        <div class="pop-legend-item"><div class="pop-legend-dot" style="background:#f97316;"></div>Essential Plan (9%)</div>
+        <div class="pop-legend-item"><div class="pop-legend-dot" style="background:#3b82f6;"></div>Private/Employer (18%)</div>
+        <div class="pop-legend-item"><div class="pop-legend-dot" style="background:#a855f7;"></div>Medicare (12%)</div>
+        <div class="pop-legend-item"><div class="pop-legend-dot" style="background:#22c55e;"></div>Other / Uninsured (26%)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-grid">
+    <div class="chart-card">
+      <div class="chart-title">Medicaid Enrollment Over Time</div>
+      <div class="chart-subtitle">COVID caused a huge spike — enrollment remains above pre-pandemic levels</div>
+      <div class="chart-wrap">
+        <canvas id="chart-medicaid-trend"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Medicaid Cost Growth</div>
+      <div class="chart-subtitle">Spending has nearly doubled in 10 years (Medicaid + Essential Plan)</div>
+      <div class="chart-wrap">
+        <canvas id="chart-medicaid-cost"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="alert alert-yellow">
+    <div class="alert-icon">⚠️</div>
+    <div>
+      <div class="alert-title">More Than 3 Million May Exceed Income Limits</div>
+      <div class="alert-body">The Empire Center for Public Policy — a watchdog group — found that <span class="alert-amount">over 3 million enrollees</span> appear to have incomes above the eligibility limits for Medicaid or the Essential Plan, based on census data analysis. For a family of four, New York now offers free coverage up to <span class="alert-amount">$78,000/year</span> in household income — very close to the state's median family income.</div>
+    </div>
+  </div>
+
+  <div class="alert alert-red">
+    <div class="alert-icon">📈</div>
+    <div>
+      <div class="alert-title">New York Is 7 Points Above Any Other State</div>
+      <div class="alert-body">At 44% enrollment, New York leads all 50 states by a wide margin — the next highest state is 7 percentage points lower, and the national average is <span class="alert-amount">24%</span>. For every 1 person removed from the "uninsured" count, <span class="alert-amount">3+ people were added</span> to Medicaid or the Essential Plan over the past decade.</div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB: WASTE -->
+<div id="tab-waste" class="tab-content">
+  <div class="section-title">Waste, Inefficiency & Red Flags</div>
+  <div class="section-sub">What government auditors, watchdogs, and independent analysts have flagged as wasteful or concerning.</div>
+
+  <div class="waste-grid">
+    <div class="waste-card">
+      <div class="waste-card-header">
+        <div>
+          <div class="waste-tag">🎬 Film Subsidies</div>
+          <div class="waste-amount" style="margin-top:8px;">$9.5B</div>
+        </div>
+      </div>
+      <div class="waste-title">Hollywood Tax Credits (2024–2036)</div>
+      <div class="waste-desc">NYS will pay film and TV producers $9.5 billion over this period. Watchdog group Reinvent Albany says it costs <strong>$75,000 per job per year</strong> — one of the least efficient job-creation programs in the state.</div>
+    </div>
+    <div class="waste-card">
+      <div class="waste-card-header">
+        <div>
+          <div class="waste-tag">🏢 Corp Subsidies</div>
+          <div class="waste-amount" style="margin-top:8px;">$4.5B/yr</div>
+        </div>
+      </div>
+      <div class="waste-title">Corporate Economic Development Spending</div>
+      <div class="waste-desc">Reinvent Albany calls $4.5 billion/year in corporate subsidies "totally flawed, irrational, and wasteful trickle-down economics." Many of these programs have never been independently evaluated for effectiveness.</div>
+    </div>
+    <div class="waste-card">
+      <div class="waste-card-header">
+        <div>
+          <div class="waste-tag">💸 No Oversight</div>
+          <div class="waste-amount" style="margin-top:8px;">$14.8B</div>
+        </div>
+      </div>
+      <div class="waste-title">"Lump Sum" Discretionary Spending</div>
+      <div class="waste-desc">Billions are budgeted as vague "lump sums" — meaning the Governor and Legislature decide how to spend it later, often without public scrutiny or competitive bidding. The Comptroller has repeatedly warned this invites waste and corruption.</div>
+    </div>
+    <div class="waste-card">
+      <div class="waste-card-header">
+        <div>
+          <div class="waste-tag">🏥 Medicaid</div>
+          <div class="waste-amount" style="margin-top:8px;">3M+</div>
+        </div>
+      </div>
+      <div class="waste-title">Potential Medicaid Over-Enrollment</div>
+      <div class="waste-desc">Watchdog analysis suggests over 3 million enrollees may have incomes above the official eligibility limits. NY extended free coverage to households earning up to 250% of the federal poverty level — $78K/year for a family of four.</div>
+    </div>
+    <div class="waste-card">
+      <div class="waste-card-header">
+        <div>
+          <div class="waste-tag">🎭 Broadway</div>
+          <div class="waste-amount" style="margin-top:8px;">$800M</div>
+        </div>
+      </div>
+      <div class="waste-title">Proposed Broadway Subsidies</div>
+      <div class="waste-desc">Budget watchdogs urged lawmakers to reject $800 million in new Broadway industry subsidies, arguing that an already-profitable entertainment industry shouldn't need taxpayer-funded support of this scale.</div>
+    </div>
+    <div class="waste-card">
+      <div class="waste-card-header">
+        <div>
+          <div class="waste-tag">📊 Structural</div>
+          <div class="waste-amount" style="margin-top:8px;">$34.3B</div>
+        </div>
+      </div>
+      <div class="waste-title">Growing Structural Budget Gap</div>
+      <div class="waste-desc">The Citizens Budget Commission warned that the $254B budget "spends too much and does too little to prepare for federal cuts or a downturn." The 3-year gap jumped $7B in just 3 months — a sign of unsustainable spending growth.</div>
+    </div>
+  </div>
+
+  <div class="chart-card-full">
+    <div class="chart-title">Wasteful/Flagged Spending — At a Glance</div>
+    <div class="chart-subtitle">Dollar amounts flagged by independent watchdog groups</div>
+    <div class="chart-wrap-lg">
+      <canvas id="chart-waste"></canvas>
+    </div>
+  </div>
+
+  <div class="alert alert-red">
+    <div class="alert-icon">🔎</div>
+    <div>
+      <div class="alert-title">Where to Dig Deeper</div>
+      <div class="alert-body">The State Comptroller publishes an annual audit report — the most recent (2024-25) found multiple agencies failing to properly oversee spending, track contracts, or prevent overpayments. In FY 2024-25, cyberattack losses in NYS exceeded <span class="alert-amount">$775 million</span>. The Civil Enforcement Division collected over <span class="alert-amount">$2 billion</span> in unpaid taxes and child support — meaning billions go uncollected each year.</div>
+    </div>
+  </div>
+
+  <div class="sources-box">
+    <div class="sources-title">Official Sources to Track This Yourself</div>
+    <ul class="sources-list">
+      <li><a href="https://openbudget.ny.gov" target="_blank">OpenBudget.NY.gov</a> — Interactive budget charts from the Division of Budget</li>
+      <li><a href="https://www.osc.ny.gov" target="_blank">OSC.NY.gov</a> — State Comptroller: independent audits, fraud/waste reports</li>
+      <li><a href="https://cbcny.org" target="_blank">CBCNY.org</a> — Citizens Budget Commission: independent watchdog analysis</li>
+      <li><a href="https://www.empirecenter.org" target="_blank">EmpireCenter.org</a> — Fiscally conservative think tank tracking Medicaid and spending</li>
+      <li><a href="https://reinventalbany.org" target="_blank">ReinventAlbany.org</a> — Tracks corporate subsidies and government transparency</li>
+      <li><a href="https://www.tax.ny.gov/data/stats/taxfacts/" target="_blank">Tax.NY.gov/data/stats</a> — Detailed breakdown of all tax collections</li>
+    </ul>
+  </div>
+</div>
+
+<div class="footer-note">
+  Data sourced from NYS Office of the State Comptroller, NYS Division of Budget, NYS Dept. of Taxation & Finance, KFF, and Citizens Budget Commission. FY 2025-26. Some figures estimated from available public data.
+</div>
+
+<script>
+// ---- CHART DEFAULTS ----
+Chart.defaults.color = '#7a8ba8';
+Chart.defaults.font.family = "'Sora', sans-serif";
+Chart.defaults.font.size = 12;
+const gridColor = 'rgba(42,53,72,0.8)';
+const tooltipBg = '#1c2535';
+
+function makeTooltip() {
+  return {
+    backgroundColor: tooltipBg,
+    titleColor: '#e8edf5',
+    bodyColor: '#7a8ba8',
+    borderColor: '#2a3548',
+    borderWidth: 1,
+    padding: 12,
+    cornerRadius: 8
+  };
+}
+
+// ---- OVERVIEW: BAR ----
+new Chart(document.getElementById('chart-overview-bar'), {
+  type: 'bar',
+  data: {
+    labels: ['FY 2019', 'FY 2020', 'FY 2021', 'FY 2022', 'FY 2023', 'FY 2024', 'FY 2025', 'FY 2026'],
+    datasets: [
+      {
+        label: 'Revenue ($B)',
+        data: [170, 165, 175, 210, 230, 249, 249, 249],
+        backgroundColor: 'rgba(59,130,246,0.7)',
+        borderColor: '#3b82f6',
+        borderWidth: 2,
+        borderRadius: 6
+      },
+      {
+        label: 'Spending ($B)',
+        data: [175, 180, 190, 215, 228, 241.5, 241.5, 254],
+        backgroundColor: 'rgba(239,68,68,0.65)',
+        borderColor: '#ef4444',
+        borderWidth: 2,
+        borderRadius: 6
+      }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'top' }, tooltip: { callbacks: { label: ctx => ` $${ctx.parsed.y}B` }, ...makeTooltip() } },
+    scales: {
+      x: { grid: { color: gridColor }, ticks: { color: '#7a8ba8' } },
+      y: {
+        grid: { color: gridColor },
+        ticks: { color: '#7a8ba8', callback: v => `$${v}B` },
+        min: 140
+      }
+    }
+  }
+});
+
+// ---- OVERVIEW: DONUT ----
+new Chart(document.getElementById('chart-overview-donut'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Total Revenue ($248.9B)', 'Spending Gap ($5.1B)'],
+    datasets: [{
+      data: [248.9, 5.1],
+      backgroundColor: ['rgba(59,130,246,0.8)', 'rgba(239,68,68,0.8)'],
+      borderColor: ['#3b82f6', '#ef4444'],
+      borderWidth: 2
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false, cutout: '68%',
+    plugins: {
+      legend: { position: 'bottom', labels: { padding: 16 } },
+      tooltip: { callbacks: { label: ctx => ` $${ctx.parsed}B` }, ...makeTooltip() }
+    }
+  }
+});
+
+// ---- OVERVIEW: GAP LINE ----
+new Chart(document.getElementById('chart-gap'), {
+  type: 'line',
+  data: {
+    labels: ['FY 2026', 'FY 2027', 'FY 2028', 'FY 2029'],
+    datasets: [{
+      label: 'Cumulative Budget Gap ($B)',
+      data: [5.1, 12, 22, 34.3],
+      borderColor: '#ef4444',
+      backgroundColor: 'rgba(239,68,68,0.15)',
+      fill: true,
+      tension: 0.4,
+      pointBackgroundColor: '#ef4444',
+      pointRadius: 6,
+      borderWidth: 3
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: ctx => ` $${ctx.parsed.y}B shortfall` }, ...makeTooltip() }
+    },
+    scales: {
+      x: { grid: { color: gridColor } },
+      y: { grid: { color: gridColor }, ticks: { callback: v => `$${v}B` } }
+    }
+  }
+});
+
+// ---- REVENUE: DONUT ----
+new Chart(document.getElementById('chart-rev-donut'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Personal Income Tax', 'Sales & Use Tax', 'Corporate/Business', 'Other Taxes & Fees'],
+    datasets: [{
+      data: [46, 26, 14, 14],
+      backgroundColor: ['#3b82f6','#f59e0b','#a855f7','#14b8a6'],
+      borderColor: '#1c2535',
+      borderWidth: 3
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false, cutout: '60%',
+    plugins: {
+      legend: { position: 'bottom', labels: { padding: 12, font: { size: 11 } } },
+      tooltip: { callbacks: { label: ctx => ` ${ctx.parsed}% of state taxes` }, ...makeTooltip() }
+    }
+  }
+});
+
+// ---- REVENUE: SOURCES ----
+new Chart(document.getElementById('chart-rev-sources'), {
+  type: 'doughnut',
+  data: {
+    labels: ['State Taxes ($117B)', 'Federal Aid ($96.7B)', 'Other Revenue ($35.2B)'],
+    datasets: [{
+      data: [117, 96.7, 35.2],
+      backgroundColor: ['#3b82f6','#f97316','#14b8a6'],
+      borderColor: '#1c2535',
+      borderWidth: 3
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false, cutout: '60%',
+    plugins: {
+      legend: { position: 'bottom', labels: { padding: 12, font: { size: 11 } } },
+      tooltip: { callbacks: { label: ctx => ` $${ctx.parsed}B` }, ...makeTooltip() }
+    }
+  }
+});
+
+// ---- REVENUE TREND ----
+new Chart(document.getElementById('chart-rev-trend'), {
+  type: 'line',
+  data: {
+    labels: ['2019','2020','2021','2022','2023','2024','2025'],
+    datasets: [
+      {
+        label: 'Total Tax Collections ($B)',
+        data: [118, 112, 120, 145, 155, 162, 162],
+        borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)',
+        fill: true, tension: 0.4, pointRadius: 5, borderWidth: 2.5
+      }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { tooltip: { callbacks: { label: ctx => ` $${ctx.parsed.y}B` }, ...makeTooltip() } },
+    scales: {
+      x: { grid: { color: gridColor } },
+      y: { grid: { color: gridColor }, ticks: { callback: v => `$${v}B` }, min: 90 }
+    }
+  }
+});
+
+// ---- SPENDING: DONUT ----
+new Chart(document.getElementById('chart-spend-donut'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Medicaid','School Aid','State Ops','Social Services','Transportation','Debt Service','Other'],
+    datasets: [{
+      data: [109.6, 37.4, 25, 22, 18, 16, 26],
+      backgroundColor: ['#ef4444','#22c55e','#3b82f6','#a855f7','#f59e0b','#14b8a6','#64748b'],
+      borderColor: '#1c2535',
+      borderWidth: 3
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false, cutout: '55%',
+    plugins: {
+      legend: { position: 'bottom', labels: { padding: 10, font: { size: 10 } } },
+      tooltip: { callbacks: { label: ctx => ` $${ctx.parsed}B` }, ...makeTooltip() }
+    }
+  }
+});
+
+// ---- SPENDING PIE 2 ----
+new Chart(document.getElementById('chart-spend-pie2'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Medicaid ($109.6B)', 'Everything Else ($144.4B)'],
+    datasets: [{
+      data: [109.6, 144.4],
+      backgroundColor: ['rgba(239,68,68,0.85)', 'rgba(59,130,246,0.5)'],
+      borderColor: ['#ef4444','#3b82f6'],
+      borderWidth: 2
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false, cutout: '65%',
+    plugins: {
+      legend: { position: 'bottom', labels: { padding: 14 } },
+      tooltip: { callbacks: { label: ctx => ` $${ctx.parsed}B` }, ...makeTooltip() }
+    }
+  }
+});
+
+// ---- SPENDING TREND ----
+new Chart(document.getElementById('chart-spend-trend'), {
+  type: 'line',
+  data: {
+    labels: ['FY15','FY16','FY17','FY18','FY19','FY20','FY21','FY22','FY23','FY24','FY25','FY26'],
+    datasets: [
+      {
+        label: 'Medicaid ($B)',
+        data: [60,65,70,73,77,82,90,96,100,108,115,109.6],
+        borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,0.1)',
+        fill: false, tension: 0.4, borderWidth: 2.5, pointRadius: 4
+      },
+      {
+        label: 'School Aid ($B)',
+        data: [22,23,24,25,26,27,28,30,32,35,37,37.4],
+        borderColor: '#22c55e', backgroundColor: 'rgba(34,197,94,0.1)',
+        fill: false, tension: 0.4, borderWidth: 2.5, pointRadius: 4
+      },
+      {
+        label: 'Total Budget ($B)',
+        data: [145,155,163,168,175,180,195,215,228,241,241,254],
+        borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.05)',
+        fill: false, tension: 0.4, borderWidth: 2, borderDash: [5,4], pointRadius: 3
+      }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'top' }, tooltip: { callbacks: { label: ctx => ` $${ctx.parsed.y}B` }, ...makeTooltip() } },
+    scales: {
+      x: { grid: { color: gridColor } },
+      y: { grid: { color: gridColor }, ticks: { callback: v => `$${v}B` } }
+    }
+  }
+});
+
+// ---- MEDICAID TREND ----
+new Chart(document.getElementById('chart-medicaid-trend'), {
+  type: 'line',
+  data: {
+    labels: ['2019','2020','2021','2022','2023 (peak)','2024','2025 (proj)'],
+    datasets: [{
+      label: 'Medicaid Enrollees (millions)',
+      data: [5.8, 6.3, 7.2, 7.8, 8.0, 7.0, 6.9],
+      borderColor: '#a855f7',
+      backgroundColor: 'rgba(168,85,247,0.15)',
+      fill: true, tension: 0.4, borderWidth: 3,
+      pointBackgroundColor: '#a855f7', pointRadius: 6
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.y}M enrollees` }, ...makeTooltip() } },
+    scales: {
+      x: { grid: { color: gridColor } },
+      y: { grid: { color: gridColor }, ticks: { callback: v => `${v}M` }, min: 4 }
+    }
+  }
+});
+
+// ---- MEDICAID COST ----
+new Chart(document.getElementById('chart-medicaid-cost'), {
+  type: 'bar',
+  data: {
+    labels: ['FY15','FY17','FY19','FY21','FY23','FY25 (proj)'],
+    datasets: [{
+      label: 'Medicaid + Essential Plan ($B)',
+      data: [60, 68, 77, 90, 102, 113],
+      backgroundColor: ['rgba(239,68,68,0.4)','rgba(239,68,68,0.5)','rgba(239,68,68,0.6)','rgba(239,68,68,0.7)','rgba(239,68,68,0.8)','rgba(239,68,68,0.95)'],
+      borderColor: '#ef4444',
+      borderWidth: 2,
+      borderRadius: 6
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` $${ctx.parsed.y}B` }, ...makeTooltip() } },
+    scales: {
+      x: { grid: { color: gridColor } },
+      y: { grid: { color: gridColor }, ticks: { callback: v => `$${v}B` }, min: 40 }
+    }
+  }
+});
+
+// ---- WASTE CHART ----
+new Chart(document.getElementById('chart-waste'), {
+  type: 'bar',
+  data: {
+    labels: ['Film Tax Credits\n(2024–2036 total)', 'Corporate Subsidies\n(annual)', 'Lump Sum / No-Oversight\nSpending', 'Potential Medicaid\nOver-Enrollment Cost', 'Broadway\nSubsidies (proposed)'],
+    datasets: [{
+      label: 'Flagged Amount ($B)',
+      data: [9.5, 4.5, 14.8, 3.5, 0.8],
+      backgroundColor: [
+        'rgba(239,68,68,0.7)',
+        'rgba(245,158,11,0.7)',
+        'rgba(239,68,68,0.85)',
+        'rgba(168,85,247,0.7)',
+        'rgba(239,68,68,0.5)'
+      ],
+      borderColor: ['#ef4444','#f59e0b','#ef4444','#a855f7','#ef4444'],
+      borderWidth: 2,
+      borderRadius: 6
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    indexAxis: 'y',
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: ctx => ` $${ctx.parsed.x}B flagged` }, ...makeTooltip() }
+    },
+    scales: {
+      x: { grid: { color: gridColor }, ticks: { callback: v => `$${v}B` } },
+      y: { grid: { color: 'transparent' }, ticks: { color: '#e8edf5', font: { size: 11 } } }
+    }
+  }
+});
+
+// ---- TAB SWITCHING ----
+function showTab(id) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+</script>
+</body>
+</html>
