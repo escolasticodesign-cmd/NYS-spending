@@ -376,6 +376,196 @@
     </div>
   </div>
 
+  <!-- WHO PAYS vs WHO CONSUMES -->
+  <div class="chart-card-full" style="margin-top:22px">
+    <div class="chart-title">💰 Who Pays In vs. 📤 Who Takes Out — The Full Picture</div>
+    <div class="chart-subtitle">The same income groups, side by side: their share of tax revenue contributed vs. their share of state spending consumed. The imbalance is the story.</div>
+
+    <!-- GROUPED BAR CHART -->
+    <div class="chart-wrap-lg" style="margin-top:18px"><canvas id="chart-pay-vs-consume"></canvas></div>
+
+    <!-- ROW-BY-ROW BREAKDOWN -->
+    <div style="display:flex;flex-direction:column;gap:10px;margin-top:24px">
+
+      <!-- TOP 200K / TOP ~2% -->
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px 20px">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:12px">
+          <div>
+            <div style="font-size:13px;font-weight:700;color:#fff">Top ~2% — Top 200,000 Taxpayers</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px">Earns $1M+ per year · ~200,000 people</div>
+          </div>
+          <div style="display:flex;gap:20px;flex-wrap:wrap">
+            <div style="text-align:center">
+              <div style="font-size:10px;color:#fca5a5;font-weight:700;letter-spacing:1px;text-transform:uppercase">PAYS IN</div>
+              <div style="font-size:24px;font-weight:800;color:#ef4444;font-family:'DM Mono',monospace">51.9%</div>
+              <div style="font-size:11px;color:var(--muted)">of all income tax</div>
+            </div>
+            <div style="text-align:center">
+              <div style="font-size:10px;color:#86efac;font-weight:700;letter-spacing:1px;text-transform:uppercase">TAKES OUT</div>
+              <div style="font-size:24px;font-weight:800;color:#22c55e;font-family:'DM Mono',monospace">&lt;1%</div>
+              <div style="font-size:11px;color:var(--muted)">of social program spending</div>
+            </div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Tax contribution</div>
+            <div style="height:10px;background:var(--border);border-radius:5px;overflow:hidden"><div style="width:51.9%;height:10px;background:#ef4444;border-radius:5px"></div></div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Benefits consumed</div>
+            <div style="height:10px;background:var(--border);border-radius:5px;overflow:hidden"><div style="width:1%;height:10px;background:#22c55e;border-radius:5px"></div></div>
+          </div>
+        </div>
+        <div style="font-size:12px;color:var(--muted);margin-top:10px;line-height:1.5">Net contributors. Uses: roads, courts, public safety, education system (children), and some Medicare. Rarely on Medicaid, SNAP, public housing, or public assistance.</div>
+      </div>
+
+      <!-- TOP 1% -->
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px 20px">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:12px">
+          <div>
+            <div style="font-size:13px;font-weight:700;color:#fff">Top 1% of Earners</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px">Earns $500K–$1M+ · ~100,000 people</div>
+          </div>
+          <div style="display:flex;gap:20px;flex-wrap:wrap">
+            <div style="text-align:center">
+              <div style="font-size:10px;color:#fca5a5;font-weight:700;letter-spacing:1px;text-transform:uppercase">PAYS IN</div>
+              <div style="font-size:24px;font-weight:800;color:#f97316;font-family:'DM Mono',monospace">46%</div>
+              <div style="font-size:11px;color:var(--muted)">of NY State income tax</div>
+            </div>
+            <div style="text-align:center">
+              <div style="font-size:10px;color:#86efac;font-weight:700;letter-spacing:1px;text-transform:uppercase">TAKES OUT</div>
+              <div style="font-size:24px;font-weight:800;color:#22c55e;font-family:'DM Mono',monospace">&lt;2%</div>
+              <div style="font-size:11px;color:var(--muted)">of social program spending</div>
+            </div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Tax contribution</div>
+            <div style="height:10px;background:var(--border);border-radius:5px;overflow:hidden"><div style="width:46%;height:10px;background:#f97316;border-radius:5px"></div></div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Benefits consumed</div>
+            <div style="height:10px;background:var(--border);border-radius:5px;overflow:hidden"><div style="width:2%;height:10px;background:#22c55e;border-radius:5px"></div></div>
+          </div>
+        </div>
+        <div style="font-size:12px;color:var(--muted);margin-top:10px;line-height:1.5">Massive net contributors. Pays heavily into a system they barely use. Their departure creates a revenue hole that cannot be filled by any realistic number of lower-income arrivals.</div>
+      </div>
+
+      <!-- TOP 10% -->
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px 20px">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:12px">
+          <div>
+            <div style="font-size:13px;font-weight:700;color:#fff">Top 10% of Earners</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px">Earns ~$130K–$500K · ~1 million people</div>
+          </div>
+          <div style="display:flex;gap:20px;flex-wrap:wrap">
+            <div style="text-align:center">
+              <div style="font-size:10px;color:#fca5a5;font-weight:700;letter-spacing:1px;text-transform:uppercase">PAYS IN</div>
+              <div style="font-size:24px;font-weight:800;color:#f59e0b;font-family:'DM Mono',monospace">65%</div>
+              <div style="font-size:11px;color:var(--muted)">of NYC municipal income tax</div>
+            </div>
+            <div style="text-align:center">
+              <div style="font-size:10px;color:#86efac;font-weight:700;letter-spacing:1px;text-transform:uppercase">TAKES OUT</div>
+              <div style="font-size:24px;font-weight:800;color:#22c55e;font-family:'DM Mono',monospace">~5%</div>
+              <div style="font-size:11px;color:var(--muted)">of social program spending</div>
+            </div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Tax contribution</div>
+            <div style="height:10px;background:var(--border);border-radius:5px;overflow:hidden"><div style="width:65%;height:10px;background:#f59e0b;border-radius:5px"></div></div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Benefits consumed</div>
+            <div style="height:10px;background:var(--border);border-radius:5px;overflow:hidden"><div style="width:5%;height:10px;background:#22c55e;border-radius:5px"></div></div>
+          </div>
+        </div>
+        <div style="font-size:12px;color:var(--muted);margin-top:10px;line-height:1.5">Strong net contributors. Uses public schools, roads, some state university system. Ineligible for Medicaid, SNAP, housing vouchers, or most social programs. This is also the largest middle-class outflow group leaving NYC.</div>
+      </div>
+
+      <!-- MIDDLE 40% -->
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px 20px">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:12px">
+          <div>
+            <div style="font-size:13px;font-weight:700;color:#fff">Middle 40% of Earners</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px">Earns ~$35K–$130K · ~4 million people</div>
+          </div>
+          <div style="display:flex;gap:20px;flex-wrap:wrap">
+            <div style="text-align:center">
+              <div style="font-size:10px;color:#fca5a5;font-weight:700;letter-spacing:1px;text-transform:uppercase">PAYS IN</div>
+              <div style="font-size:24px;font-weight:800;color:#3b82f6;font-family:'DM Mono',monospace">~33%</div>
+              <div style="font-size:11px;color:var(--muted)">of income tax revenue</div>
+            </div>
+            <div style="text-align:center">
+              <div style="font-size:10px;color:#fcd34d;font-weight:700;letter-spacing:1px;text-transform:uppercase">TAKES OUT</div>
+              <div style="font-size:24px;font-weight:800;color:#f59e0b;font-family:'DM Mono',monospace">~25%</div>
+              <div style="font-size:11px;color:var(--muted)">of state spending benefits</div>
+            </div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Tax contribution</div>
+            <div style="height:10px;background:var(--border);border-radius:5px;overflow:hidden"><div style="width:33%;height:10px;background:#3b82f6;border-radius:5px"></div></div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Benefits consumed</div>
+            <div style="height:10px;background:var(--border);border-radius:5px;overflow:hidden"><div style="width:25%;height:10px;background:#f59e0b;border-radius:5px"></div></div>
+          </div>
+        </div>
+        <div style="font-size:12px;color:var(--muted);margin-top:10px;line-height:1.5">Roughly break even. Uses public schools heavily, roads, transit. Some may qualify for lower-tier Medicaid programs or CHIP for children. Pays meaningful income tax. <strong style="color:#fff">This is the group leaving NYC in the largest raw numbers</strong> — the affordability squeeze is worst here.</div>
+      </div>
+
+      <!-- BOTTOM 50% -->
+      <div style="background:var(--surface2);border:1px solid rgba(239,68,68,0.3);border-radius:12px;padding:16px 20px">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:12px">
+          <div>
+            <div style="font-size:13px;font-weight:700;color:#fff">Bottom 50% of Earners</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px">Earns under ~$35K · ~5 million people</div>
+          </div>
+          <div style="display:flex;gap:20px;flex-wrap:wrap">
+            <div style="text-align:center">
+              <div style="font-size:10px;color:#fca5a5;font-weight:700;letter-spacing:1px;text-transform:uppercase">PAYS IN</div>
+              <div style="font-size:24px;font-weight:800;color:#64748b;font-family:'DM Mono',monospace">0.2%</div>
+              <div style="font-size:11px;color:var(--muted)">of income tax revenue</div>
+            </div>
+            <div style="text-align:center">
+              <div style="font-size:10px;color:#fca5a5;font-weight:700;letter-spacing:1px;text-transform:uppercase">TAKES OUT</div>
+              <div style="font-size:24px;font-weight:800;color:#ef4444;font-family:'DM Mono',monospace">~70%</div>
+              <div style="font-size:11px;color:var(--muted)">of Medicaid + social spending</div>
+            </div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Tax contribution</div>
+            <div style="height:10px;background:var(--border);border-radius:5px;overflow:hidden"><div style="width:0.4%;height:10px;background:#64748b;border-radius:5px"></div></div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Benefits consumed</div>
+            <div style="height:10px;background:var(--border);border-radius:5px;overflow:hidden"><div style="width:70%;height:10px;background:#ef4444;border-radius:5px"></div></div>
+          </div>
+        </div>
+        <div style="font-size:12px;color:var(--muted);margin-top:10px;line-height:1.5">Primary beneficiaries of state spending. Receives Medicaid (~6.9M enrolled), SNAP (~2.7M enrolled), public housing subsidies, Child Health Plus, Essential Plan, public assistance cash benefits, and more. Pays almost zero income tax — though still pays sales tax, which is the most proportionally burdensome tax for low earners.</div>
+      </div>
+
+    </div>
+
+    <!-- CALLOUT SUMMARY -->
+    <div style="margin-top:18px;padding:18px 22px;background:linear-gradient(135deg,rgba(239,68,68,0.1),rgba(59,130,246,0.08));border:1px solid rgba(239,68,68,0.25);border-radius:12px">
+      <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:8px">⚖️ The Bottom Line: An Extreme Imbalance</div>
+      <div style="font-size:13px;color:var(--muted);line-height:1.7">
+        The top 2% of earners (~200,000 people) pay <strong style="color:#ef4444">51.9% of income taxes</strong> and consume <strong style="color:#22c55e">less than 1%</strong> of social program spending.<br>
+        The bottom 50% (~5 million people) pay <strong style="color:#64748b">0.2% of income taxes</strong> and consume <strong style="color:#ef4444">~70%</strong> of Medicaid and social spending.<br><br>
+        This is not inherently wrong — progressive systems are designed to redistribute. But it creates a structural fragility: <strong style="color:#fff">the entire budget rests on the willingness and ability of a tiny group of people to stay, keep earning, and keep paying.</strong> When even a small fraction of those 200,000 people move to Florida, the fiscal impact is geometric, not linear.
+      </div>
+    </div>
+
+  </div>
+
   <!-- INTERACTIVE SCENARIO -->
   <div class="scenario-box">
     <div class="scenario-title">🎯 "What If" Scenario: Company Relocation Calculator</div>
@@ -1007,6 +1197,53 @@ new Chart(document.getElementById('chart-revenue-replacement'), {
     scales: {
       x: { grid: { color: gc }, ticks: { color: '#7a8ba8', font: { size: 10 } } },
       y: { grid: { color: gc }, ticks: { callback: v => `$${(v/1000).toFixed(0)}K` } }
+    }
+  }
+});
+
+// PAY vs CONSUME GROUPED BAR
+new Chart(document.getElementById('chart-pay-vs-consume'), {
+  type: 'bar',
+  data: {
+    labels: ['Top 2%\n(~200K people)', 'Top 1%\n(~100K people)', 'Top 10%\n(~1M people)', 'Middle 40%\n(~4M people)', 'Bottom 50%\n(~5M people)'],
+    datasets: [
+      {
+        label: '% of Income Tax Paid',
+        data: [51.9, 46, 65, 33, 0.2],
+        backgroundColor: 'rgba(239,68,68,0.75)',
+        borderColor: '#ef4444',
+        borderWidth: 2,
+        borderRadius: 6
+      },
+      {
+        label: '% of Social Program Spending Consumed',
+        data: [1, 2, 5, 25, 70],
+        backgroundColor: 'rgba(59,130,246,0.65)',
+        borderColor: '#3b82f6',
+        borderWidth: 2,
+        borderRadius: 6
+      }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'top', labels: { padding: 16, font: { size: 12 } } },
+      tooltip: {
+        callbacks: {
+          label: ctx => ` ${ctx.parsed.y}% — ${ctx.dataset.label}`
+        },
+        ...tt
+      }
+    },
+    scales: {
+      x: { grid: { color: gc }, ticks: { color: '#7a8ba8', font: { size: 11 } } },
+      y: {
+        grid: { color: gc },
+        ticks: { callback: v => `${v}%`, color: '#7a8ba8' },
+        max: 100,
+        title: { display: true, text: '% Share', color: '#7a8ba8', font: { size: 11 } }
+      }
     }
   }
 });
